@@ -1,11 +1,19 @@
-import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+print(os.getenv("GOOGLE_API_KEY"))
+
+
 
 # --- AYARLAR VE DOSYA YOLLARI ---
 PDF_YOLU = "data/NLP13.pdf"
@@ -58,36 +66,44 @@ for i, parca in enumerate(bulunan_parcalar):
     sayfa_no = parca.metadata.get('page', 0) + 1
     print(f"[{i + 1}] Sayfa {sayfa_no}: {parca.page_content[:150]}...")
 
-    # 1. LLM (Beyin) Kurulumu
-    # NOT: Buraya kendi Gemini API anahtarını koymalısın
-    os.environ["GOOGLE_API_KEY"] = "YOUR_API_KEY_HERE"
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
 
-    # 2. Prompt (Talimat) Hazırlama
-    # Modele nasıl davranması gerektiğini söylüyoruz
-    sablon = """
-    Sen akademik bir asistansın. Aşağıdaki bağlam (context) bilgilerini kullanarak soruyu cevapla.
-    Eğer cevap bağlamda yoksa 'Bu bilgi dökümanda bulunmuyor' de, uydurma.
+# 1. LLM Kurulumu
+# main_project.py içindeki llm satırını şu şekilde güncelle:
+# Sadece bu satırı değiştir:
+# Sadece bu satırı güncelle:
+# Sadece bu satırı değiştirip dene:
+# Eski satırı sil ve bunu yapıştır:
+# Test çıktısına göre ismi tam olarak şöyle yazmayı dene:
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.0-pro",
+    temperature=0.3,
+)
 
-    BAĞLAM:
-    {context}
 
-    SORU: {question}
+template = """Aşağıdaki bağlamı kullanarak soruyu cevapla:
+{context}
 
-    CEVAP:"""
+Soru: {question}
+Cevap:"""
 
-    PROMPT = PromptTemplate(template=sablon, input_variables=["context", "question"])
+prompt = ChatPromptTemplate.from_template(template)
 
-    # 3. RAG Zincirini Oluşturma
-    rag_zinciri = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=vector_db.as_retriever(search_kwargs={"k": 3}),
-        chain_type_kwargs={"prompt": PROMPT}
-    )
 
-    # 4. Final Test
-    soru = "What are the three types of paraphrases mentioned in the document?"
-    print(f"\nAsistan Yanıtlıyor...")
-    cevap = rag_zinciri.invoke(soru)
-    print(cevap["result"])
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
+rag_chain = (
+    {
+        "context": vector_db.as_retriever() | format_docs,
+        "question": RunnablePassthrough()
+    }
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+soru = "What is the definition of a paraphrase?"
+cevap = rag_chain.invoke(soru)
+print("\n--- MODEL CEVABI ---")
+print(cevap)
