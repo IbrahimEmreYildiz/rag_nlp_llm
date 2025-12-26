@@ -180,3 +180,8 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 .env
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+chroma_db_deposu2/
