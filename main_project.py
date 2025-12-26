@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv
 
 
+
 load_dotenv()
 print(os.getenv("GOOGLE_API_KEY"))
 
@@ -74,10 +75,22 @@ for i, parca in enumerate(bulunan_parcalar):
 # Sadece bu satırı değiştirip dene:
 # Eski satırı sil ve bunu yapıştır:
 # Test çıktısına göre ismi tam olarak şöyle yazmayı dene:
+
+
+
+
+
+
+
+
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.0-pro",
-    temperature=0.3,
+    model="gemini-1.0",   # ListModels ile doğrula
+    temperature=0,
+    google_api_key=os.getenv("GOOGLE_API_KEY")
 )
+
+
+
 
 
 template = """Aşağıdaki bağlamı kullanarak soruyu cevapla:
