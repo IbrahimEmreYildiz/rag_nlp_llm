@@ -45,8 +45,8 @@ Projeyi kendi bilgisayarınızda çalıştırmak için adımları takip edin:
 
 1.  **Repoyu klonlayın:**
     ```bash
-    git clone [https://github.com/kullaniciadi/proje-isminiz.git](https://github.com/kullaniciadi/proje-isminiz.git)
-    cd proje-isminiz
+    git clone [https://github.com/IbrahimEmreYildiz/rag_nlp_llm.git](https://github.com/IbrahimEmreYildiz/rag_nlp_llm.git)
+    cd rag_nlp_llm
     ```
 
 2.  **Sanal ortam oluşturun (Önerilen):**
@@ -74,17 +74,13 @@ Projeyi kendi bilgisayarınızda çalıştırmak için adımları takip edin:
     streamlit run app.py
     ```
 
-## 📸 Ekran Görüntüleri
 
-*(Buraya Streamlit arayüzünden alacağın 1-2 ekran görüntüsünü ekleyebilirsin. Örneğin, zor bir soruya verdiği cevabın görüntüsü.)*
+## 👤 İletişim
 
-## 🔮 Gelecek Geliştirmeler
-
-* [ ] Kullanıcının arayüz üzerinden PDF yükleyebilmesi (Dosya yükleme butonu).
-* [ ] Farklı LLM modellerinin (OpenAI, Claude) seçilebilmesi.
-* [ ] Cevapların kaynak sayfa numaralarının gösterilmesi.
+* **Geliştirici:** İbrahim Emre YILDIZ
+* **LinkedIn:** [www.linkedin.com/in/ibrahim-emre-yıldız-549ab0256]
+* **E-posta:** [iemreis803@gmail.com]
 
 ## 📜 Lisans
 
- MIT Lisansı altındadır.
-
+MIT Lisansı altındadır.
