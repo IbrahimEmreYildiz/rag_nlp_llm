@@ -9,14 +9,10 @@ from langchain_core.output_parsers import StrOutputParser
 import os
 from dotenv import load_dotenv
 
-
-
 load_dotenv()
-print(os.getenv("GOOGLE_API_KEY"))
+# print(os.getenv("GOOGLE_API_KEY")) # Güvenlik için kapattım
 
-
-
-# --- AYARLAR VE DOSYA YOLLARI ---
+# AYARLAR VE DOSYA YOLLARI
 PDF_YOLU = "data/NLP13.pdf"
 DB_YOLU = "./chroma_db_deposu2"
 
@@ -28,7 +24,7 @@ if not os.path.exists(DB_YOLU):
     loader = PyPDFLoader(PDF_YOLU)
     belge = loader.load()
 
-    # Metni parçalara böl (800 karakter boyut, 150 karakter bindirme)
+    # Metni parçalara böl
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
         chunk_overlap=150,
@@ -38,7 +34,6 @@ if not os.path.exists(DB_YOLU):
     print(f"PDF parçalandı: {len(parcalar)} adet parça oluştu.")
 
     # 2. VEKTÖRLEŞTİRME VE KAYIT
-    # all-mpnet-base-v2 modelini kullanarak sayısal vektörler üretir
     embedding_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
 
     vector_db = Chroma.from_documents(
@@ -49,63 +44,42 @@ if not os.path.exists(DB_YOLU):
     print("Vektörleştirme bitti ve ChromaDB'ye kaydedildi.")
 
 else:
-    # Veritabanı zaten varsa doğrudan oradan oku (Zaman tasarrufu)
+    # Veritabanı zaten varsa oradan oku
     print("--- Mevcut Veritabanı Yükleniyor ---")
     embedding_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
     vector_db = Chroma(persist_directory=DB_YOLU, embedding_function=embedding_model)
 
-# 3. ARAMA (RETRIEVAL) TESTİ
-soru = "What is the definition of a paraphrase according to the document?"
-print(f"\nSoru: {soru}")
 
-# En alakalı 3 parçayı getir
-bulunan_parcalar = vector_db.similarity_search(soru, k=3)
-
-print("\n--- Bulunan Kaynaklar ---")
-for i, parca in enumerate(bulunan_parcalar):
-    # Sayfa numarasını 0-indeksinden 1-indeksine çevirerek düzeltiyoruz
-    sayfa_no = parca.metadata.get('page', 0) + 1
-    print(f"[{i + 1}] Sayfa {sayfa_no}: {parca.page_content[:150]}...")
-
-
-# 1. LLM Kurulumu
-# main_project.py içindeki llm satırını şu şekilde güncelle:
-# Sadece bu satırı değiştir:
-# Sadece bu satırı güncelle:
-# Sadece bu satırı değiştirip dene:
-# Eski satırı sil ve bunu yapıştır:
-# Test çıktısına göre ismi tam olarak şöyle yazmayı dene:
-
-
-
-
-
-
-
-
+# 3. LLM AYARLARI
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.0",   # ListModels ile doğrula
-    temperature=0,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
+    model="gemini-2.5-flash",
+    temperature=0.3
 )
 
 
+# Asistana dil kuralını burada öğretiyoruz
+template = """
+Sen yardımsever bir asistansın. Aşağıdaki bağlamı (context) kullanarak soruyu cevapla.
 
+KURALLAR:
+1. Eğer soru Türkçe ise cevabı TÜRKÇE ver.
+2. Eğer soru İngilizce ise cevabı İNGİLİZCE ver.
+3. Bağlam (context) İngilizce olsa bile, sen her zaman SORUNUN DİLİNDE cevap ver.
 
-
-template = """Aşağıdaki bağlamı kullanarak soruyu cevapla:
+Bağlam:
 {context}
 
 Soru: {question}
-Cevap:"""
+
+Cevap:
+"""
 
 prompt = ChatPromptTemplate.from_template(template)
-
 
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-
+# Zinciri oluşturuyoruz
 rag_chain = (
     {
         "context": vector_db.as_retriever() | format_docs,
@@ -116,7 +90,25 @@ rag_chain = (
     | StrOutputParser()
 )
 
-soru = "What is the definition of a paraphrase?"
-cevap = rag_chain.invoke(soru)
-print("\n--- MODEL CEVABI ---")
-print(cevap)
+# --- ÇALIŞTIRMA DÖNGÜSÜ ---
+print("\n--- RAG Asistanı Hazır! (Çıkmak için 'q' yazın) ---\n")
+
+while True:
+    kullanici_sorusu = input("Sorunuz: ")
+
+    if kullanici_sorusu.lower() in ['q', 'exit', 'çık']:
+        print("Görüşürüz! 👋")
+        break
+
+    if not kullanici_sorusu.strip():
+        continue
+
+    print("🤖 Düşünüyor...")
+
+    try:
+        cevap = rag_chain.invoke(kullanici_sorusu)
+        print(f"\nCevap:\n{cevap}\n")
+        print("-" * 50)
+
+    except Exception as e:
+        print(f"Bir hata oluştu: {e}")

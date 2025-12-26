@@ -1,5 +1,12 @@
-from dotenv import load_dotenv
+from google.genai import Client
 import os
 
-load_dotenv()
-print(os.getenv("GOOGLE_API_KEY"))
+from google.genai import Client
+
+client = Client(api_key="AIzaSyB2yw3VZagtmSerEiOE_fcD0ppSTikeUOo")
+
+
+# Mevcut modelleri listeleme
+models = client.list_models()  # artık burada çalışmalı
+for m in models:
+    print(m.name, m.capabilities)
