@@ -53,20 +53,23 @@ def get_chain(retriever):
 
     # EKSİK OLAN KISIMLAR BURADAN İTİBAREN BAŞLIYOR:
     template = """
-    Sen yardımsever bir asistansın. Aşağıdaki bağlamı (context) kullanarak soruyu cevapla.
+        Sen yardımsever bir asistansın. SADECE aşağıdaki bağlamı (context) kullanarak soruyu cevapla.
 
-    KURALLAR:
-    1. Eğer soru Türkçe ise cevabı TÜRKÇE ver.
-    2. Eğer soru İngilizce ise cevabı İNGİLİZCE ver.
-    3. Bağlam (context) İngilizce olsa bile, sen her zaman SORUNUN DİLİNDE cevap ver.
+        KURALLAR:
+        1. Eğer soru Türkçe ise cevabı TÜRKÇE ver.
+        2. Eğer soru İngilizce ise cevabı İNGİLİZCE ver.
+        3. Bağlam (context) İngilizce olsa bile, sen her zaman SORUNUN DİLİNDE cevap ver.
+        4. KRİTİK KURAL: Eğer sorunun cevabı verilen bağlamda (context) KESİNLİKLE YOKSA, kendi bilginden uydurma veya dışarıdan bilgi katma. 
+           - Soru Türkçe ise: "Verilen dökümanda bu bilgi yer almıyor." de.
+           - Soru İngilizce ise: "This information is not found in the document." de.
 
-    Bağlam:
-    {context}
+        Bağlam:
+        {context}
 
-    Soru: {question}
+        Soru: {question}
 
-    Cevap:
-    """
+        Cevap:
+        """
     prompt = ChatPromptTemplate.from_template(template)
 
     def format_docs(docs):
